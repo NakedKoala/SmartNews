@@ -106,6 +106,8 @@ class Translator(object):
         for b in range(batch_size):
             pred_sents = self.vocab.convert_ids_to_tokens([int(n) for n in preds[b][0]])
             pred_sents = ' '.join(pred_sents).replace(' ##','')
+#             import pdb 
+#             pdb.set_trace()
             gold_sent = ' '.join(tgt_str[b].split())
             # translation = Translation(fname[b],src[:, b] if src is not None else None,
             #                           src_raw, pred_sents,
@@ -126,22 +128,24 @@ class Translator(object):
 
         self.model.eval()
         gold_path = self.args.result_path + '.%d.gold' % step
-        can_path = self.args.result_path + '.%d.candidate' % step
-        self.gold_out_file = codecs.open(gold_path, 'w', 'utf-8')
+        can_path = self.args.result_path 
+#         self.gold_out_file = codecs.open(gold_path, 'w', 'utf-8')
         self.can_out_file = codecs.open(can_path, 'w', 'utf-8')
 
         # raw_gold_path = self.args.result_path + '.%d.raw_gold' % step
         # raw_can_path = self.args.result_path + '.%d.raw_candidate' % step
-        self.gold_out_file = codecs.open(gold_path, 'w', 'utf-8')
+#         self.gold_out_file = codecs.open(gold_path, 'w', 'utf-8')
         self.can_out_file = codecs.open(can_path, 'w', 'utf-8')
 
         raw_src_path = self.args.result_path + '.%d.raw_src' % step
-        self.src_out_file = codecs.open(raw_src_path, 'w', 'utf-8')
+#         self.src_out_file = codecs.open(raw_src_path, 'w', 'utf-8')
 
         # pred_results, gold_results = [], []
         ct = 0
         with torch.no_grad():
             for batch in data_iter:
+#                 import pdb 
+#                 pdb.set_trace()
                 if(self.args.recall_eval):
                     gold_tgt_len = batch.tgt.size(1)
                     # self.min_length = gold_tgt_len + 20
@@ -150,10 +154,11 @@ class Translator(object):
                     self.max_length = gold_tgt_len + 20
                 batch_data = self.translate_batch(batch)
                 translations = self.from_batch(batch_data)
+#                 pdb.set_trace()
 
                 for trans in translations:
                     pred, gold, src = trans
-                    pred_str = pred.replace('[unused0]', '').replace('[unused3]', '').replace('[PAD]', '').replace('[unused1]', '').replace(r' +', ' ').replace(' [unused2] ', '<q>').replace('[unused2]', '').strip()
+                    pred_str = pred.replace('[unused0]', '').replace('[unused3]', '').replace('[PAD]', '').replace('[unused1]', '').replace(r' +', ' ').replace(' [unused2] ', '. ').strip()
                     gold_str = gold.strip()
                     if(self.args.recall_eval):
                         # _pred_str = ''
@@ -172,16 +177,16 @@ class Translator(object):
                         pred_str = ' '.join(pred_str.split()[:len(gold_str.split())])
 
                     self.can_out_file.write(pred_str + '\n')
-                    self.gold_out_file.write(gold_str + '\n')
-                    self.src_out_file.write(src.strip() + '\n')
+#                     self.gold_out_file.write(gold_str + '\n')
+#                     self.src_out_file.write(src.strip() + '\n')
                     ct += 1
                 self.can_out_file.flush()
-                self.gold_out_file.flush()
-                self.src_out_file.flush()
+#                 self.gold_out_file.flush()
+#                 self.src_out_file.flush()
 
-        self.can_out_file.close()
-        self.gold_out_file.close()
-        self.src_out_file.close()
+#         self.can_out_file.close()
+#         self.gold_out_file.close()
+#         self.src_out_file.close()
 
         if (step != -1):
             rouges = self._report_rouge(gold_path, can_path)
@@ -230,7 +235,8 @@ class Translator(object):
         src = batch.src
         segs = batch.segs
         mask_src = batch.mask_src
-
+#         import pdb
+#         pdb.set_trace()
         src_features = self.model.bert(src, segs, mask_src)
         dec_states = self.model.decoder.init_decoder_state(src, src_features, with_cache=True)
         device = src_features.device

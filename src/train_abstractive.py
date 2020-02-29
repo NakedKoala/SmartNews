@@ -310,9 +310,11 @@ def train_abs_single(args, device_id):
 
 
 def test_text_abs(args):
-
+#     print(args.device)
     logger.info('Loading checkpoint from %s' % args.test_from)
     device = "cpu" if args.visible_gpus == '-1' else "cuda"
+    print(args.visible_gpus)
+    print(device)
 
     checkpoint = torch.load(args.test_from, map_location=lambda storage, loc: storage)
     opt = vars(checkpoint['opt'])
@@ -323,7 +325,8 @@ def test_text_abs(args):
 
     model = AbsSummarizer(args, device, checkpoint)
     model.eval()
-
+#     import pdb
+#     pdb.set_trace()
     test_iter = data_loader.load_text(args, args.text_src, args.text_tgt, device)
 
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True, cache_dir=args.temp_dir)

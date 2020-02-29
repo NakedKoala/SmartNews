@@ -2,6 +2,7 @@ import bisect
 import gc
 import glob
 import random
+import numpy as np
 
 import torch
 from tqdm import tqdm
@@ -288,76 +289,142 @@ class DataIterator(object):
                 yield batch
             return
 
-
-
 def load_text(args, source_fp, target_fp, device):
+    
     from others.tokenization import BertTokenizer
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
     sep_vid = tokenizer.vocab['[SEP]']
     cls_vid = tokenizer.vocab['[CLS]']
     n_lines = len(open(source_fp).read().split('\n'))
+    print(n_lines)
+    
+    def _process_src(lines):
+        
+        lines = [ line.strip().lower() for line in lines]
+        src_subtoken_idxs = []
+        for line in lines:
+            line_subtokens = tokenizer.tokenize(line)
+            line_subtokens = ['[CLS]'] + line_subtokens + ['[SEP]']
+            line_subtokens_idxs = tokenizer.convert_tokens_to_ids(line_subtokens)
+            line_subtokens_idxs = line_subtokens_idxs[:-1][:args.max_pos]
+            line_subtokens_idxs[-1] = sep_vid
+            line_subtokens_idxs += [0] * (args.max_pos - len(line_subtokens_idxs))
 
-    def _process_src(raw):
-        raw = raw.strip().lower()
-        src_subtokens = tokenizer.tokenize(raw)
-        src_subtokens = ['[CLS]'] + src_subtokens + ['[SEP]']
-        src_subtoken_idxs = tokenizer.convert_tokens_to_ids(src_subtokens)
-        src_subtoken_idxs = src_subtoken_idxs[:-1][:args.max_pos]
-        src_subtoken_idxs[-1] = sep_vid
-        _segs = [-1] + [i for i, t in enumerate(src_subtoken_idxs) if t == sep_vid]
-        segs = [_segs[i] - _segs[i - 1] for i in range(1, len(_segs))]
-        segments_ids = []
-        segs = segs[:args.max_pos]
-        for i, s in enumerate(segs):
-            if (i % 2 == 0):
-                segments_ids += s * [0]
-            else:
-                segments_ids += s * [1]
-
-        src = torch.tensor(src_subtoken_idxs)[None, :].to(device)
+            src_subtoken_idxs.append(line_subtokens_idxs)
+       
+        src = torch.tensor(src_subtoken_idxs).to(device)    
+        segs = torch.zeros(src.shape).long().to(device)
+       
         mask_src = (1 - (src == 0).float()).to(device)
-        cls_ids = [[i for i, t in enumerate(src_subtoken_idxs) if t == cls_vid]]
+        
+        cls_ids = [[i for i, t in enumerate(line_subtoken_idxs) if t == cls_vid] for line_subtoken_idxs in src_subtoken_idxs]
         clss = torch.tensor(cls_ids).to(device)
         mask_cls = 1 - (clss == -1).float()
         clss[clss == -1] = 0
+        
+        return src, mask_src, segs, clss, mask_cls
+    
+    with open(source_fp) as source:
+            content = source.read().split('\n')
+           
+            src, mask_src, segs, clss, mask_cls = _process_src(content)
+            
+            batch = Batch()
+            batch.src  = src
+            batch.tgt  = None
+            batch.mask_src  = mask_src
+            batch.mask_tgt  = None
+            batch.segs  = segs
+            
+          
+            batch.src_str  = "\n ".join(content)
+           
+            batch.clss  = clss
+            batch.mask_cls  = mask_cls
+           
+            batch.batch_size=src.shape[0]
+            batch.tgt_str  = [''] * batch.batch_size
+#             import pdb
+#             pdb.set_trace()
+            yield batch
+    
 
-        return src, mask_src, segments_ids, clss, mask_cls
+# def load_text(args, source_fp, target_fp, device):
+    
+#     from others.tokenization import BertTokenizer
+#     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
+#     sep_vid = tokenizer.vocab['[SEP]']
+#     cls_vid = tokenizer.vocab['[CLS]']
+#     n_lines = len(open(source_fp).read().split('\n'))
+#     print(n_lines)
 
-    if(target_fp==''):
-        with open(source_fp) as source:
-            for x in tqdm(source, total=n_lines):
-                src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
-                segs = torch.tensor(segments_ids)[None, :].to(device)
-                batch = Batch()
-                batch.src  = src
-                batch.tgt  = None
-                batch.mask_src  = mask_src
-                batch.mask_tgt  = None
-                batch.segs  = segs
-                batch.src_str  =  [[sent.replace('[SEP]','').strip() for sent in x.split('[CLS]')]]
-                batch.tgt_str  = ['']
-                batch.clss  = clss
-                batch.mask_cls  = mask_cls
+#     def _process_src(raw):
+# #         import pdb 
+# #         pdb.set_trace()
+#         raw = raw.strip().lower()
+#         src_subtokens = tokenizer.tokenize(raw)
+#         src_subtokens = ['[CLS]'] + src_subtokens + ['[SEP]']
+#         src_subtoken_idxs = tokenizer.convert_tokens_to_ids(src_subtokens)
+#         src_subtoken_idxs = src_subtoken_idxs[:-1][:args.max_pos]
+#         src_subtoken_idxs[-1] = sep_vid
+#         _segs = [-1] + [i for i, t in enumerate(src_subtoken_idxs) if t == sep_vid]
+#         segs = [_segs[i] - _segs[i - 1] for i in range(1, len(_segs))]
+#         segments_ids = []
+#         segs = segs[:args.max_pos]
+#         for i, s in enumerate(segs):
+#             if (i % 2 == 0):
+#                 segments_ids += s * [0]
+#             else:
+#                 segments_ids += s * [1]
 
-                batch.batch_size=1
-                yield batch
-    else:
-        with open(source_fp) as source, open(target_fp) as target:
-            for x, y in tqdm(zip(source, target), total=n_lines):
-                x = x.strip()
-                y = y.strip()
-                y = ' '.join(y.split())
-                src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
-                segs = torch.tensor(segments_ids)[None, :].to(device)
-                batch = Batch()
-                batch.src  = src
-                batch.tgt  = None
-                batch.mask_src  = mask_src
-                batch.mask_tgt  = None
-                batch.segs  = segs
-                batch.src_str  =  [[sent.replace('[SEP]','').strip() for sent in x.split('[CLS]')]]
-                batch.tgt_str  = [y]
-                batch.clss  = clss
-                batch.mask_cls  = mask_cls
-                batch.batch_size=1
-                yield batch
+#         src = torch.tensor(src_subtoken_idxs)[None, :].to(device)
+#         mask_src = (1 - (src == 0).float()).to(device)
+# #         pdb.set_trace()
+#         cls_ids = [[i for i, t in enumerate(src_subtoken_idxs) if t == cls_vid]]
+#         clss = torch.tensor(cls_ids).to(device)
+#         mask_cls = 1 - (clss == -1).float()
+#         clss[clss == -1] = 0
+# #         import pdb
+# #         pdb.set_trace()
+#         return src, mask_src, segments_ids, clss, mask_cls
+
+#     if(target_fp==''):
+#         with open(source_fp) as source:
+#             for x in tqdm(source, total=n_lines):
+# #                 import pdb 
+# #                 pdb.set_trace()
+#                 src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
+#                 segs = torch.tensor(segments_ids)[None, :].to(device)
+#                 batch = Batch()
+#                 batch.src  = src
+#                 batch.tgt  = None
+#                 batch.mask_src  = mask_src
+#                 batch.mask_tgt  = None
+#                 batch.segs  = segs
+#                 batch.src_str  =  [[sent.replace('[SEP]','').strip() for sent in x.split('[CLS]')]]
+#                 batch.tgt_str  = ['']
+#                 batch.clss  = clss
+#                 batch.mask_cls  = mask_cls
+
+#                 batch.batch_size=1
+#                 yield batch
+#     else:
+#         with open(source_fp) as source, open(target_fp) as target:
+#             for x, y in tqdm(zip(source, target), total=n_lines):
+#                 x = x.strip()
+#                 y = y.strip()
+#                 y = ' '.join(y.split())
+#                 src, mask_src, segments_ids, clss, mask_cls = _process_src(x)
+#                 segs = torch.tensor(segments_ids)[None, :].to(device)
+#                 batch = Batch()
+#                 batch.src  = src
+#                 batch.tgt  = None
+#                 batch.mask_src  = mask_src
+#                 batch.mask_tgt  = None
+#                 batch.segs  = segs
+#                 batch.src_str  =  [[sent.replace('[SEP]','').strip() for sent in x.split('[CLS]')]]
+#                 batch.tgt_str  = [y]
+#                 batch.clss  = clss
+#                 batch.mask_cls  = mask_cls
+#                 batch.batch_size=1
+#                 yield batch
