@@ -19,12 +19,11 @@ def hello_world():
 
 @app.route('/summarize', methods=['POST'])
 def summarize():
-#     import pdb 
-#     pdb.set_trace()
+    verbose = int(request.form['verbose'])
     file_handle = request.files['upfile']
     file_name=  file_handle.filename
     file_handle.save(f'../input_raw_text/{file_name}')
-    analytics = model.summarize(file_name)
+    analytics = model.summarize(file_name, verbose=verbose)
     
     with open(f'../pred/result_{file_name}','r') as f:
         summarized_text = f.read()

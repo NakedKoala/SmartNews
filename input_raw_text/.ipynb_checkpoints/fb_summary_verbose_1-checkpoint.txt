@@ -1,0 +1,5 @@
+facebook is expanding its ai-powered tool that lets people turn 2d photos into animated 3d renderings
+facebook is making a tool that converts 2d images to 3d structures more widely available. the tool was previously only available for high-end phones with multiple cameras or for desktop users willing to build their own depth map
+facebook is working to establish itself as a leader in ai - the platform announced a slate of research projects spanning machine learning and robotics last year
+\" we hope that by sharing details about our 3d photos system , \" facebook says. \" we will help the ai community make progress in these areas , \" says facebook
+the tool uses a neural network that estimates how each pixel in a photo is from the camera. the ai was trained on a large set of data , meaning it works on content ranging from paintings to photos

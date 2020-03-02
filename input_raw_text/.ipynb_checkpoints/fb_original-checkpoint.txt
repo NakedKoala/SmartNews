@@ -1,0 +1,13 @@
+Facebook is expanding its AI-powered tool that lets people turn 2D photos into animated 3D renderings. The tool, called 3D Photos, used to only be available for high-end phones with multiple cameras, but will now be available on most iOS and Android devices. It uses machine learning systems that infer the 3D structure of any image. Facebook is working to establish itself as a leader in AI, vying for dominance with other tech giants like Apple and Google. Visit Business Insider's homepage for more stories .
+
+Facebook is making a tool that converts 2D images to 3D structures more widely available, rolling it out to most iPhone and Android users, the company announced Friday.
+
+The tool, called 3D Photos, was previously only available for high-end phones with multiple cameras or for desktop users willing to build their own depth map to guide the 3D rendering. Now, anyone with an iPhone 7 or later or a "recent midrange" Android device can use it.
+
+Facebook is working to establish itself as a leader in AI - the platform announced a slate of research projects spanning machine learning and robotics last year, signaling a willingness to compete with other tech giants like Apple and Google that are vying for dominance in the field.
+
+"This work will help us better understand the content of 2D images more generally. Improved understanding of 3D scenes could also help robots navigate and interact with the physical world," Facebook said in a statement. "We hope that by sharing details about our 3D Photos system, we will help the AI community make progress in these areas."
+
+Here's a breakdown of how the machine learning-powered tool works and how to use it.
+
+The tool uses a neural network that estimates how "far" each pixel in a photo is from the camera in order to create a "3D photo." The AI was trained on a large set of data, meaning it works on content ranging from paintings to photos, according to the company. Facebook says it is continuing to improve its AI to get better at depth estimation in real-time scenarios, like augmented reality. The tool is available as of Friday to people using iOS and Android, Facebook announced. When posting a photo to Facebook, users will be able to click a "3D Photos" button to convert their pictures, according to

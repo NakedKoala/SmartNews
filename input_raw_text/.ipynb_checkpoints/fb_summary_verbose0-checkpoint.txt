@@ -1,0 +1,3 @@
+the tool , called 3d photos , was previously only available for high-end phones with multiple cameras. it uses machine learning systems that infer the 3d structure of any image
+facebook announced a slate of research projects spanning machine learning and robotics last year. \" we will help the ai community make progress in these areas , \" facebook said
+the tool uses a neural network that estimates how each pixel in a photo is from the camera. the ai was trained on a large set of data , meaning it works on content ranging from paintings to photos
