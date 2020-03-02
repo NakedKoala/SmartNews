@@ -12,8 +12,7 @@ def init_model():
 app = Flask(__name__)
 model = init_model()
 
-
-@app.route('/')
+@app.route('/hello', methods=['GET'])
 def hello_world():
     return 'Hello, World!'
 
@@ -36,4 +35,5 @@ def summarize():
     }
         
     return jsonify(res)
-
+if __name__ == '__main__':
+    app.run(host= '0.0.0.0')
