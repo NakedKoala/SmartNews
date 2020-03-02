@@ -36,7 +36,7 @@ class SmartNews:
         self.nlp = spacy.load('en_core_web_sm')
         
     def summarize(self, file_name):
-        self.adjuster.compact_paragraph(file_name)
+        self.adjuster.adjust(file_name)
         self.config.text_src =  os.path.join(self.config.input_path, f'proc_{file_name}') 
         self.config.result_path = os.path.join(self.config.output_path, f'result_{file_name}')
         test_iter = load_text(self.config,  self.config.text_src, '', self.device)

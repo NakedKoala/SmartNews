@@ -3,7 +3,7 @@ import re
 import os
 
 class BlockLenAdjuster:
-    def __init__(self, input_dir, min_block_len=300, max_block_len=500):
+    def __init__(self, input_dir, min_block_len=50, max_block_len=100):
         self.input_dir = input_dir
         self.nlp = spacy.load("en_core_web_sm")
         self.min_block_len = min_block_len
@@ -59,6 +59,8 @@ class BlockLenAdjuster:
             adjusted_content_blocks.append(to_add)
 
         proc_content = "\n".join(adjusted_content_blocks)
+        proc_content = re.sub(r'\n+', '\n', proc_content).strip()
+        proc_content = proc_content.strip("\n")
         
         with open(os.path.join(self.input_dir, f'proc_{file_name}'), 'w') as f: 
             f.write(proc_content)
