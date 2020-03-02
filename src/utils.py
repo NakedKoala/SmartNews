@@ -5,6 +5,7 @@ import os
 class BlockLenAdjuster:
     def __init__(self, input_dir, min_block_len=50, max_block_len=100):
         self.input_dir = input_dir
+       
         self.nlp = spacy.load("en_core_web_sm")
         self.min_block_len = min_block_len
         self.max_block_len = max_block_len

@@ -12,6 +12,7 @@ import spacy
 class SmartNews:
     def __init__(self, config):
         self.config = config 
+        
         self.adjuster = BlockLenAdjuster(input_dir=config.input_path)
         logger.info('Loading checkpoint from %s' % config.test_from)
         self.device = "cpu" if config.visible_gpus == '-1' else "cuda"
@@ -35,8 +36,13 @@ class SmartNews:
         self.predictor = build_predictor(config, tokenizer, symbols, model, logger)
         self.nlp = spacy.load('en_core_web_sm')
         
-    def summarize(self, file_name):
-        self.adjuster.adjust(file_name)
+    def summarize(self, file_name, verbose=1):
+        if verbose==1:
+            self.adjuster.adjust(file_name)
+            self.config.min_len=15
+        if verbose==0:
+            self.adjuster.adjust(file_name,min_block_len=200, maxblock_len)
+            self.config.min_len=40
         self.config.text_src =  os.path.join(self.config.input_path, f'proc_{file_name}') 
         self.config.result_path = os.path.join(self.config.output_path, f'result_{file_name}')
         test_iter = load_text(self.config,  self.config.text_src, '', self.device)
